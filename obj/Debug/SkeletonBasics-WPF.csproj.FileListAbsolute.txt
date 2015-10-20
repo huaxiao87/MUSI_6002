@@ -49,3 +49,15 @@ D:\VS Solution\SkeletonBasics-WPF - Quintet\obj\Debug\SkeletonBasics-WPF_MarkupC
 D:\VS Solution\SkeletonBasics-WPF - Quintet\obj\Debug\SkeletonBasics-WPF.g.resources
 D:\VS Solution\SkeletonBasics-WPF - Quintet\obj\Debug\Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources.resources
 D:\VS Solution\SkeletonBasics-WPF - Quintet\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF.exe
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF.pdb
+D:\VS Solution\MUSI_6002\bin\Debug\SkeletonBasics-WPF.exe
+D:\VS Solution\MUSI_6002\bin\Debug\SkeletonBasics-WPF.pdb
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF.csprojResolveAssemblyReference.cache
+D:\VS Solution\MUSI_6002\obj\Debug\MainWindow.baml
+D:\VS Solution\MUSI_6002\obj\Debug\MainWindow.g.cs
+D:\VS Solution\MUSI_6002\obj\Debug\App.g.cs
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF_MarkupCompile.cache
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF.g.resources
+D:\VS Solution\MUSI_6002\obj\Debug\Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources.resources
+D:\VS Solution\MUSI_6002\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache

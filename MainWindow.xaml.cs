@@ -92,6 +92,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             InitializeComponent();
         }
 
+        public IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 7000);
+        public Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
 
         /// <summary>
         /// Draws indicators to show which edges are clipping skeleton data
@@ -321,16 +324,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
                 }
             }
-            
-            byte[] bytes = new byte[1024];
-            IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"),7000);
-            Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            //label1.Content = "This is a UDP client,the client IP is" + Dns.GetHostAddresses(Dns.GetHostName());
-            //Joint HandRight=skeleton.Joints[JointType.HandRight];
-
             label1.Content = skeleton.Joints[JointType.HandRight].Position.Y;
-            bytes=System.Text.Encoding.ASCII.GetBytes(skeleton.Joints[JointType.HandRight].Position.Y.ToString());
-            server.SendTo(bytes,ip);
+            sendMessageToMax(skeleton.Joints[JointType.HandLeft], skeleton.Joints[JointType.HandRight]);
+
         }
 
         /// <summary>
@@ -392,19 +388,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         Point a=new Point(100.0,400.0);
         Point b=new Point(300,300.0);
-        private void DrawPerpendicularLine(DrawingContext Mypoint, Point foot, Point theother,float width)
+        private void sendMessageToMax(Joint leftHand, Joint rightHand)
         {
-            double x3,y3,x4,y4;
-            double angle = System.Math.Atan((theother.Y - foot.Y) / (theother.X - foot.X));
-            x3 = foot.X + width * System.Math.Cos(angle + System.Math.PI / 2);
-            y3 = foot.Y + width * System.Math.Sin(angle + System.Math.PI / 2);
-            x4 = foot.X + width * System.Math.Cos(angle - System.Math.PI / 2);
-            y4 = foot.Y + width * System.Math.Sin(angle - System.Math.PI / 2);
-            Point P3=new Point(x3,y3);
-            Point P4 = new Point(x4, y4);
-            Pen myPen=this.trackedBonePen;            
-            Mypoint.DrawLine(myPen,foot,theother);
-            Mypoint.DrawLine(myPen, P3, P4);
+            byte[] bytes = new byte[1024];
+            //label1.Content = "This is a UDP client,the client IP is" + Dns.GetHostAddresses(Dns.GetHostName());
+            //Joint HandRight=skeleton.Joints[JointType.HandRight];
+            //label1.Content = skeleton.Joints[JointType.HandRight].Position.Y;
+
+            bytes = System.Text.Encoding.ASCII.GetBytes(leftHand.Position.Y.ToString());
+            server.SendTo(bytes, ip);
     
         }
         #endregion
