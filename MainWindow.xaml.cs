@@ -145,7 +145,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             //IPHostEntry ipEntry = Dns.GetHostByName(Dns.GetHostName());
 
-            label1.Content = "This is a UDP client,the client IP is" +" "+Dns.GetHostByName(Dns.GetHostName()).AddressList[0];//显示本机IP
+            string displayIP=(Dns.GetHostByName(Dns.GetHostName()).AddressList[0]).ToString();//显示本机IP
             
             
             // Create the drawing group we'll use for drawing
@@ -324,8 +324,22 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
                 }
             }
-            label1.Content = skeleton.Joints[JointType.HandRight].Position.Y;
-            sendMessageToMax(skeleton.Joints[JointType.HandLeft], skeleton.Joints[JointType.HandRight]);
+           
+            double distance = skeleton.Joints[JointType.HipCenter].Position.Z;
+            double[] availableDistanceRange = new double [2]{1.4,3};
+            
+            label2.Content = distance;
+
+            if (distance <= availableDistanceRange[1] && distance >= availableDistanceRange[0])
+            {
+                label1.Content = "WORKING!!";
+                sendMessageToMax(skeleton.Joints[JointType.HandLeft], skeleton.Joints[JointType.HandRight], skeleton.Joints[JointType.ShoulderCenter], skeleton.Joints[JointType.HipCenter]);
+            }
+            else
+            {
+                label1.Content = "PLEASE ADJUST YOUR DISTANCE TO THE CAMERA.";
+            }
+
 
         }
 
@@ -342,8 +356,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return new Point(depthPoint.X, depthPoint.Y);
         }
 
-        /// <summary>
-        /// 通过两个关节点画一条骨骼
         /// </summary>
         /// <param name="skeleton">skeleton to draw bones from</param>
         /// <param name="drawingContext">drawing context to draw to</param>
@@ -376,7 +388,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 drawPen = this.trackedBonePen;
             }
-
+            
+            
             drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
         }
 
@@ -386,17 +399,108 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
 
-        Point a=new Point(100.0,400.0);
-        Point b=new Point(300,300.0);
-        private void sendMessageToMax(Joint leftHand, Joint rightHand)
-        {
-            byte[] bytes = new byte[1024];
-            //label1.Content = "This is a UDP client,the client IP is" + Dns.GetHostAddresses(Dns.GetHostName());
-            //Joint HandRight=skeleton.Joints[JointType.HandRight];
-            //label1.Content = skeleton.Joints[JointType.HandRight].Position.Y;
+        private string lastLeftNote;
+        private string lastRightNote;
+        private bool notHighest = true;
 
-            bytes = System.Text.Encoding.ASCII.GetBytes(leftHand.Position.Y.ToString());
+        private void sendMessageToMax(Joint leftHand, Joint rightHand, Joint shoulderCenter, Joint hipCenter)
+        {
+            double leftX         = leftHand.Position.X;
+            double leftY         = leftHand.Position.Y;
+            double rightX        = rightHand.Position.X;
+            double rightY        = rightHand.Position.Y;
+            double shoulderX     = shoulderCenter.Position.X;
+            double shoulderY     = shoulderCenter.Position.Y;
+            double hipCenterY    = hipCenter.Position.Y;
+            double leftAngle     = System.Math.Atan2(leftY - shoulderY, leftX - shoulderX);
+            double rightAngle    = System.Math.Atan2(rightY - shoulderY, rightX - shoulderX);
+            double pi            = System.Math.PI;
+
+            string[] notes       = new string[6] { "0", "72", "75", "78", "81", "84" };
+            byte[] bytes         = new byte[1024];
+            string leftNote;
+            string rightNote;
+
+            bytes = System.Text.Encoding.ASCII.GetBytes("angel" + "  " + rightAngle.ToString());
             server.SendTo(bytes, ip);
+            
+            //left upper zone
+            if (leftAngle > 2 * pi / 3 && leftAngle < pi && notHighest)
+            {
+                leftNote = notes[4];
+                if (lastLeftNote!=leftNote)
+                {
+                    lastLeftNote = leftNote;
+                    bytes = System.Text.Encoding.ASCII.GetBytes("left 144 " + leftNote);
+                    server.SendTo(bytes, ip);
+                }
+            }
+
+            //left lower zone
+            if (leftAngle > -5 * pi / 6 && leftAngle < -2 * pi / 3 && notHighest)
+            {
+                leftNote = notes[2];
+                if (lastLeftNote != leftNote)
+                {
+                    lastLeftNote = leftNote;
+                    bytes = System.Text.Encoding.ASCII.GetBytes("left 144 " + leftNote);
+                    server.SendTo(bytes, ip);
+                }
+            }
+
+            //right upper
+            if (rightAngle > 0 && rightAngle < pi / 3 && notHighest)
+            {
+                rightNote = notes[3];
+                if (lastRightNote != rightNote)
+                {
+                    lastRightNote = rightNote;
+                    bytes = System.Text.Encoding.ASCII.GetBytes("right 144 " + rightNote);
+                    server.SendTo(bytes, ip);
+                }
+            }
+            //right lower
+            if (rightAngle > -pi / 3 && rightAngle < -pi / 6 && notHighest)
+            {
+                rightNote = notes[1];
+                if (lastRightNote != rightNote)
+                {
+                    lastRightNote = rightNote;
+                    bytes = System.Text.Encoding.ASCII.GetBytes("right 144 " + rightNote);
+                    server.SendTo(bytes, ip);
+                }
+            }
+
+            //two hands are both on the highest position
+            if (leftAngle < 2 * pi / 3 && leftAngle > pi / 2 && rightAngle > pi / 3 && rightAngle < pi / 2 )
+            {
+                notHighest = false;
+                rightNote  = notes[5];
+                leftNote   = notes[5];
+                if (lastLeftNote != leftNote && lastRightNote != rightNote)
+                {
+                    lastLeftNote  = leftNote;
+                    lastRightNote = rightNote;
+                    bytes = System.Text.Encoding.ASCII.GetBytes("right 144 " + rightNote);
+                    server.SendTo(bytes, ip);
+                }
+            }
+
+            //two hands are both on the lowest position
+            if (leftAngle < - pi / 2 && leftAngle > - 3* pi / 5 && rightAngle > - pi / 2 && rightAngle < -2 * pi / 5  && rightY < hipCenterY && leftY < hipCenterY)
+            {
+                rightNote = notes[0];
+                leftNote = notes[0];
+                notHighest = true;
+                lastLeftNote = leftNote;
+                lastRightNote = rightNote;
+                for (int i = 1; i < notes.Length; i++)
+                {
+                    bytes = System.Text.Encoding.ASCII.GetBytes("left 128 " + notes[i]);//send noteoff to all notes
+                    server.SendTo(bytes, ip);
+                }
+            }
+
     
         }
         #endregion
@@ -417,12 +521,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private void textBox1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            TheLastIP = textBox1.Text;
+
         }
 
         private void scrollBar1_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            a.X = e.NewValue;
+            //a.X = e.NewValue;
         }
     }
 }
